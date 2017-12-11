@@ -1,0 +1,24 @@
+HashKnownHosts no
+PreferredAuthentications=publickey,password,keyboard-interactive
+ServerAliveInterval 60
+
+Host dev
+ HostName your.host.name.domain
+ Port 22
+ User yourusename
+ ForwardX11 yes
+ ForwardX11Trusted yes
+ Protocol 2
+ IdentityFile ~/.ssh/id_rsa
+#LocalForward 5432 127.0.0.1:5432
+
+# other hosts
+Host youhost shortcut
+    User username
+    HostName host.name.is.here
+    StrictHostKeyChecking no
+    Protocol 2
+    UserKnownHostsFile /dev/null
+    IdentityFile ~/.ssh/id_rsa
+    ProxyCommand ssh -W %h:%p host1
+
