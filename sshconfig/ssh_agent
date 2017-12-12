@@ -1,0 +1,25 @@
+# Adding your SSH keys to an SSH agent to avoid typing the passphrase
+
+# Generate a key with passphrase
+ mkdir ~/.ssh/ubuntu-vm-pf/
+ ssh-keygen -f ~/.ssh/ubuntu-vm-pf/id_rsa
+ ssh-copy-id -i ~/.ssh/ubuntu-vm-pf/id_rsa liviu@http.liviubalan.com
+ ssh -i ~/.ssh/ubuntu-vm-pf/id_rsa liviu@http.liviubalan.com
+
+# Start SSH agent and place it into the background
+  eval $(ssh-agent)
+
+# Add private key to the agent
+   ssh-add ~/.ssh/ubuntu-vm-pf/id_rsa
+
+# Lists public key parameters of all identities currently represented by the
+	# agent
+	ssh-add -L
+
+# Connect without typing passphrase
+	 ssh -i ~/.ssh/ubuntu-vm-pf/id_rsa liviu@http.liviubalan.com
+
+# Connect without SSH agent
+	  ps aux | grep agent
+	  kill pid
+	  ssh -i ~/.ssh/ubuntu-vm-pf/id_rsa liviu@http.liviubalan.com
