@@ -1,0 +1,1 @@
+ls -t | xargs -t -n 1 -I % ps2pdf % after_%
