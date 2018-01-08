@@ -2,61 +2,62 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 )
 
-func ping(hosts <-chan string, sigs chan<- bool) {
-	for host := range hosts {
-		pingCmd := exec.Command("ping", "-c 2", host)
-		_, err := pingCmd.Output()
-
-		if err == nil {
-			fmt.Printf("%s: ", host)
-			fmt.Printf("active")
-			fmt.Println()
-		}
-
-	}
-	sigs <- true
-}
-
-func pingHost(host string, sigs chan<- bool) {
-	pingCmd := exec.Command("ping", "-c 2", host)
+func pingHost(host string, sigs chan<- bool, hosts chan<- string) {
+	pingCmd := exec.Command("ping", "-c 1 -q -W 2", host)
 	_, err := pingCmd.Output()
 
 	if err == nil {
 		fmt.Printf("%s: ", host)
 		fmt.Printf("active")
 		fmt.Println()
+		hosts <- host
 	}
-
 	sigs <- true
 }
 
-func main() {
-	//hosts := make(chan string, 255)
-	sigs := make(chan bool, 10)
+func saveFile(hosts <-chan string) {
+	f, e := os.Create("active_hosts.log")
+	if e != nil {
+		panic(e)
+	}
+	defer f.Close()
 
-	workers := 254 * 254
+	for host := range hosts {
+		_, e := f.WriteString(host + "\n")
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+func main() {
+	sigs := make(chan bool, 10)
+	hosts := make(chan string, 20)
+
+	workers := 0
 
 	startTime := time.Now()
 
-	//	for i := 1; i <= workers; i++ {
-	//		go ping(hosts, sigs)
-	//	}
+	go saveFile(hosts)
 
 	for i := 1; i < 255; i++ {
 		for j := 1; j < 255; j++ {
-			go pingHost(fmt.Sprintf("211.157.%d.%d", i, j), sigs)
+			go pingHost(fmt.Sprintf("211.157.%d.%d", i, j), sigs, hosts)
+			workers++
 		}
 	}
 
 	for i := 1; i <= workers; i++ {
 		<-sigs
-		//fmt.Println("worker ", i, "of 10 ends")
 	}
 
+	close(hosts)
+
 	runningTime := time.Now().Sub(startTime)
-	fmt.Println("spends: ", runningTime.Minutes(), "m")
+	fmt.Println("spends: ", runningTime, "m")
 }
