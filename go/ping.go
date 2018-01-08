@@ -9,6 +9,12 @@ import (
 
 func pingHost(host string, sigs chan<- bool, hosts chan<- string) {
 	pingCmd := exec.Command("ping", "-c 1 -q -W 2", host)
+
+	var timer *time.Timer
+	timer = time.AfterFunc(50 * time.Second, func() {
+		pingCmd.Process.Kill()
+	})
+
 	_, err := pingCmd.Output()
 
 	if err == nil {
@@ -17,6 +23,8 @@ func pingHost(host string, sigs chan<- bool, hosts chan<- string) {
 		fmt.Println()
 		hosts <- host
 	}
+
+	timer.Stop()
 	sigs <- true
 }
 
